@@ -1,17 +1,353 @@
-<!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no" />
-    <title>Cierre Parcelas</title>
-    <link rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/light/main.css" />
+    <title>AppCasaCERBU | ArcGIS API for JavaScript 4.13</title>
+    <link rel="stylesheet" href="https://js.arcgis.com/4.13/esri/themes/light/main.css" />
+    <style>
+        html,
+        body,
+        #viewDiv {
+            padding: 0;
+            margin: 0;
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+    <script src="https://js.arcgis.com/4.13/"></script>
+    <script>
+        require([
+            "esri/Map",
+            "esri/views/MapView",
+            "esri/widgets/Locate",
+            "esri/layers/GeoJSONLayer",
+            "esri/symbols/LineSymbol3DLayer",
+            "esri/symbols/LineSymbol3D",
+            "esri/renderers/SimpleRenderer",
+            "esri/widgets/Home",
+            "esri/widgets/LayerList",
+            "esri/widgets/Legend",
+            "esri/widgets/Expand",
+            "esri/widgets/Editor"], (
+                Map,
+                MapView,
+                Locate,
+                GeoJSONLayer,
+                LineSymbol3DLayer,
+                LineSymbol3D,
+                SimpleRenderer,
+                Home,
+                LayerList,
+                Legend,
+                Expand,
+                Editor
+            ) => {
 
-    <script src="https://js.arcgis.com/4.25/"></script>
-    <script src="js/cierreParcelas.js"></script>
-    <link rel="stylesheet" href="css/cierreParcelas.css">
-    
+            const exportBtn = document.getElementById("export");
 
+
+            /// DEFINICIÓN DEL LOS RUTA MIGRATORIA
+            const PerimetroTotal = new GeoJSONLayer({
+                url: "https://raw.githubusercontent.com/Carlos29Blanco/CasaMunon/main/Perimetro1eraPlantaGeoJSON.geojson",
+                copyright: "UCM",
+                title: "Perimetro Total",
+                outFields: ["*"],
+                renderer: {
+                    type: "simple",
+                    symbol: {
+                        type: "simple-fill",
+                        color: [92, 92, 92, 0.1],
+                        outline: {
+                            color: [242, 2, 26, 2],
+                            width: 1.25
+                        }
+                    }
+                },
+                popupTemplate: {
+                    title: "Perimetro total",
+                    content: [
+                        {
+                            type: "fields",
+                            fieldInfos: [
+                                {
+                                    fieldName: "Area",
+                                    label: "Area",
+                                    visible: true
+                                }
+                            ]
+                        }
+                    ]
+                },
+                visible: true,
+                availableFields: true,
+            });
+
+            /// DEFINICIÓN DEL LOS RUTA MIGRATORIA
+            const PerimetroUtiles = new GeoJSONLayer({
+                url: "https://raw.githubusercontent.com/Carlos29Blanco/CasaMunon/main/PerimetroUtiles1PlantaGeoJSON.geojson",
+                copyright: "UCM",
+                title: "Perimetro Utiles",
+                outFields: ["*"],
+                renderer: {
+                    type: "simple",
+                    symbol: {
+                        type: "simple-fill",
+                        color: [66, 135, 245, 0.1],
+                        outline: {
+                            color: [66, 135, 245],
+                            width: 1.25
+                        }
+                    }
+                },
+                popupTemplate: {
+                    title: "Perimetro util",
+                    content: [
+                        {
+                            type: "fields",
+                            fieldInfos: [
+                                {
+                                    fieldName: "Area",
+                                    label: "Area",
+                                    visible: true
+                                },
+                                {
+                                    fieldName: "BUFF_DIST",
+                                    label: "Buffer",
+                                    visible: true
+                                }
+                            ]
+                        }
+                    ]
+                },
+                visible: true,
+                availableFields: true,
+            });
+
+             /// DEFINICIÓN DEL LOS RUTA MIGRATORIA
+             const Parcelas = new GeoJSONLayer({
+                url: "https://raw.githubusercontent.com/Carlos29Blanco/CasaMunon/main/Terreno_GeoJSON.geojson",
+                copyright: "UCM",
+                title: "Parcelas",
+                outFields: ["*"],
+                renderer: {
+                    type: "simple",
+                    symbol: {
+                        type: "simple-fill",
+                        color: [242, 2, 26, 0.3],
+                        outline: {
+                            color: [252, 252, 252, 2],
+                            width: 1.25
+                        }
+                    }
+                },
+                popupTemplate: {
+                    title: "Parcelas",
+                    content: [
+                        {
+                            type: "fields",
+                            fieldInfos: [
+                                {
+                                    fieldName: "area",
+                                    label: "Area",
+                                    visible: true
+                                },
+                                {
+                                    fieldName: "tipo",
+                                    label: "Tipo",
+                                    visible: true
+                                }
+                            ]
+                        }
+                    ]
+                },
+                visible: true,
+                availableFields: true,
+            });
+
+
+            /// DEFINICIÓN DEL LOS RUTA MIGRATORIA 
+            const Reforma = new GeoJSONLayer({
+                url:
+                    "https://raw.githubusercontent.com/Carlos29Blanco/CasaMunon/main/Reforma_GeoJSON.geojson",
+                copyright: "CERBU",
+                title: "Reforma",
+                /* timeInfo: {
+                    interval: {
+                        unit: "days",
+                        value: 7
+                    }
+                }, */
+                renderer: {
+                    type: "simple",
+                    symbol: {
+                        type: "simple-fill",
+                        supportsQuery: true,
+                        outline: {
+                            color: [51, 200, 200],
+                            width: 2
+                        }
+                    }
+                },
+                popupTemplate: {
+                    title: "Reforma",
+                    content: [
+                        {
+                            type: "fields",
+                            fieldInfos: [
+                                {
+                                    fieldName: "Shape_Length",
+                                    label: "longitud",
+                                    visible: true
+                                },
+                                {
+                                    fieldName: "altura",
+                                    label: "Altura",
+                                    visible: true
+                                }
+                            ]
+                        }
+                    ]
+                },
+
+            });
+
+
+
+
+
+            ////// cargar mapa
+            const map = new Map({
+                basemap: "satellite",
+                layers: [PerimetroTotal, PerimetroUtiles, Parcelas, Reforma]
+            });
+
+            const view = new MapView({
+                container: "viewDiv",
+                map: map,
+                center: [-5.834513, 43.170658],
+                zoom: 20
+            });
+
+            const locateBtn = new Locate({
+                view: view
+            });
+
+            // Add the locate widget to the top left corner of the view , 
+            view.ui.add(locateBtn, {
+                position: "top-left"
+            });
+
+            /// WIDGET DE HOME PARA LA VISTA INICIAL
+            var homeBtn = new Home({
+                view: view,
+
+            });
+
+            // Add the home button to the top left corner of the view
+            view.ui.add(homeBtn, "top-left");
+
+            // Agregar la leyenda
+            const legendExpand = new Expand({
+                collapsedIconClass: "esri-icon-legend",
+                expandIconClass: "esri-icon-legend",
+                expandTooltip: "Legend",
+                view: view,
+                content: new Legend({
+                    view: view
+                }),
+                expanded: false
+            });
+            view.ui.add(legendExpand, "top-right");
+
+            // Agregar la layerList
+            const layerListExpand = new Expand({
+                collapsedIconClass: "esri-icon-layers",
+                expandIconClass: "esri-icon-layers",
+                expandTooltip: "LayerList",
+                view: view,
+                content: new LayerList({
+                    view: view
+                }),
+                expanded: false
+            });
+            view.ui.add(layerListExpand, "top-left");
+
+
+            const editor = new Editor({
+                view,
+                layerInfos: [
+                    {
+                        layer: Reforma,
+                        /* fieldConfig: [
+                            {
+                                name: "OBJECTID",
+                                label: "OBJECTID"
+                            },
+                            {
+                                name: "LEFT_FID",
+                                label: "LEFT_FID"
+                            },
+                            {
+                                name: "longitud",
+                                label: "longitud"
+                            }
+                        ] */
+                    }
+                ]
+            });
+
+            view.ui.add(editor, "bottom-right");
+            view.ui.add(exportBtn, "bottom-left");
+            exportBtn.addEventListener("click", () => {
+                geojsonLayer
+                    .queryFeatures()
+                    .then(({ features }) => {
+                        const FeatureCollection = {
+                            type: "FeatureCollection",
+                            features: []
+                        };
+                        FeatureCollection.features = features.map(
+                            ({ attributes, geometry }, index) => {
+                                return {
+                                    id: index,
+                                    properties: attributes,
+                                    geometry: Terraformer.ArcGIS.parse(geometry)
+                                };
+                            }
+                        );
+                        // Do something with your GeoJSON
+                        // Download it or send it to an external API
+                        // to update your existing GeoJSON
+                        console.log("FeatureCollection", FeatureCollection);
+                    })
+                    .catch(error => console.warn(error));
+            });
+
+            view
+                .when(() => {
+                    const typeParams = {
+                        layer: geojsonLayer,
+                        view: view,
+                        field: "drvr_age"
+                    };
+
+                    return typeCreator.createRenderer(typeParams).then(response => {
+                        geojsonLayer.renderer = response.renderer;
+                        return geojsonLayer.queryFeatures();
+                    });
+                })
+                .then(({ features }) => {
+                    view.goTo(features);
+                })
+                .catch(error => {
+                    console.warn(error);
+                });
+
+
+            
+        });
+    </script>
 </head>
 
 <body>
